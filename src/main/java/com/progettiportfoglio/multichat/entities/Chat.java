@@ -1,4 +1,4 @@
-package entities;
+package com.progettiportfoglio.multichat.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package entities;
+package com.progettiportfoglio.multichat.entities;
 
 import java.time.Instant;
 
