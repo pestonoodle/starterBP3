@@ -16,7 +16,6 @@ public class AuthController {
     final AuthService as;
 
 
-    
     public AuthController(AuthService as) {
         this.as = as;
     }

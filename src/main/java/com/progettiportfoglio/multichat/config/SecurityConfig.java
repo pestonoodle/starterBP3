@@ -3,6 +3,8 @@ package com.progettiportfoglio.multichat.config;
 import com.progettiportfoglio.multichat.auth.TokenService;
 import com.progettiportfoglio.multichat.security.TokenAuthenticationFilter;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +57,7 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(
