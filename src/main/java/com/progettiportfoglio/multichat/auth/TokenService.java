@@ -1,23 +1,37 @@
 package com.progettiportfoglio.multichat.auth;
 
+import com.progettiportfoglio.multichat.entities.AuthToken;
+import com.progettiportfoglio.multichat.entities.User;
+import com.progettiportfoglio.multichat.repo.AuthRepo;
+import com.progettiportfoglio.multichat.repo.UserRepo;
 import com.progettiportfoglio.multichat.security.AuthenticatedUser;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class TokenService {
 
-    // TODO [AUTH-01]: iniettare AuthTokenRepository tramite costruttore.
-    // Il repository e le entita User/AuthToken devono essere creati dallo studente.
+    UserRepo ur;
+    AuthRepo ar;
+
+    public TokenService(UserRepo ur, AuthRepo ar) {
+        this.ur = ur;
+        this.ar = ar;
+    }
 
     public String createToken(Long userId) {
         String token = UUID.randomUUID().toString();
+        User u = ur.findById(userId).get();
+        AuthToken at = new AuthToken();
 
-        // TODO [AUTH-02]: creare AuthToken, associare l'utente e salvare nel DB.
-        // Restituire token soltanto dopo il salvataggio.
-        // Sostituire questa eccezione con il codice e con: return token;
-        throw new UnsupportedOperationException("TODO: salvare il token nel database");
+        at.setUser(u);
+        at.setToken(token);
+
+        ar.save(at);
+
+        return token;
     }
 
     public Optional<AuthenticatedUser> findUserByToken(String token) {
@@ -25,17 +39,17 @@ public class TokenService {
             return Optional.empty();
         }
 
-        // TODO [AUTH-03]: cercare il valore esatto nella tabella auth_tokens.
-        // Se presente, recuperare l'utente e restituire:
-        // Optional.of(new AuthenticatedUser(user.getId(), user.getUsername())).
-        // Se assente, restituire Optional.empty().
-        // Nessun token viene accettato finche questo metodo non e completato.
-        return Optional.empty();
+        return ar.findByToken(token)
+            .map(a -> new AuthenticatedUser(
+            a.getUser().getId(),
+            a.getUser().getUsername()
+        ));
     }
 
     public void deleteToken(String token) {
-        // TODO [AUTH-04]: eliminare dal DB soltanto il token ricevuto.
-        // Sostituire questa eccezione con l'operazione del repository.
-        throw new UnsupportedOperationException("TODO: eliminare il token dal database");
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException ("Errore cancellazione token");
+        }
+        ar.deleteById(token);
     }
 }

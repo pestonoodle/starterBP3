@@ -36,12 +36,17 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(auth -> auth
+                        //sicurezza sistema ***
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/ws").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("ROLE_ADMIN")
+                        //come se fosse anyOtherRequest
                         .anyRequest().authenticated())
+                        // ****
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, exception) -> {
                             response.setStatus(401);
@@ -50,6 +55,7 @@ public class SecurityConfig {
                         }))
                 .addFilterBefore(new TokenAuthenticationFilter(tokenService),
                         UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
 
