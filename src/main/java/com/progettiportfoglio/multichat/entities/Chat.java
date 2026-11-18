@@ -20,4 +20,7 @@ public class Chat {
 
     @Column(unique = true)
     String slug;
+
+    @Column(nullable = false)
+    private boolean locked = false;
 }

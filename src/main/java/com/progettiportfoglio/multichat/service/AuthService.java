@@ -1,6 +1,6 @@
 package com.progettiportfoglio.multichat.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,65 +13,73 @@ import com.progettiportfoglio.multichat.repo.UserRepo;
 @Service
 public class AuthService {
 
-    final UserRepo ur;
-    final TokenService ts;
-    final PasswordEncoder pe;
+    private final UserRepo ur;
+    private final TokenService ts;
+    private final PasswordEncoder pe;
 
-    @Autowired
-    PasswordEncoder p;
-
-    AuthService(UserRepo ur, TokenService ts, PasswordEncoder pe) {
+    public AuthService(UserRepo ur, TokenService ts, PasswordEncoder pe) {
         this.ur = ur;
         this.ts = ts;
         this.pe = pe;
     }
 
-    public void registrazione(AuthDTO.registerDTO dto) {
-        User u = new User();
-
-        if (dto.username() == null || dto.username().length() < 2 || dto.username().length() > 30) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username non valido");
+    public AuthDTO.UserResponse registrazione(AuthDTO.RegisterRequest dto) {
+        if (dto.username() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username mancante");
+        }
+        String username = dto.username().trim().toLowerCase();
+        if (username.length() < 3 || username.length() > 30) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lo username deve avere da 3 a 30 caratteri");
         }
 
-        if (!ur.findByUsername(dto.username()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username gia esistente");
+        if (ur.findByUsername(username).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username già esistente");
         }
 
-        if (dto.email() == null || !dto.email().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))
-
-        {
+        if (dto.email() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email mancante");
+        }
+        String email = dto.email().trim().toLowerCase();
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email non valida");
         }
-        if (!ur.findByEmail(dto.email()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email gia esistente");
+
+        if (ur.findByEmail(email).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email già esistente");
         }
 
         if (dto.password() == null || dto.password().length() < 8
-                || dto.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+                || dto.password().getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "La password deve avere almeno 8 caratteri e massimo 72 byte UTF-8");
         }
 
-        u.setUsername(dto.username());
-        u.setPasswordHash(p.encode(dto.password()));
-        u.setEmail(dto.email());
-        ur.save(u);
+        User u = new User();
+        u.setUsername(username);
+        u.setEmail(email);
+        u.setPasswordHash(pe.encode(dto.password()));
+        User saved = ur.save(u);
 
+        return new AuthDTO.UserResponse(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getRole());
     }
 
-    public String login(AuthDTO.loginDTO dto) {
+    public String login(AuthDTO.LoginRequest dto) {
+        if (dto.email() == null || dto.password() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziali non valide");
+        }
 
-        User u = ur.findByEmail(dto.email()).orElseThrow(() -> new IllegalArgumentException("Account non trovato"));
+        String email = dto.email().trim().toLowerCase();
+        User u = ur.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziali non valide"));
 
-        if (!p.matches(dto.password(), u.getPasswordHash())) {
-            throw new IllegalArgumentException("Credenziali Errate");
+        if (!pe.matches(dto.password(), u.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziali non valide");
         }
 
         return ts.createToken(u.getId());
     }
 
-    public void logout(String token){
+    public void logout(String token) {
         ts.deleteToken(token);
     }
-
 }

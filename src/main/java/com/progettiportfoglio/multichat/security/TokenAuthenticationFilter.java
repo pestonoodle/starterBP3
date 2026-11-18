@@ -44,8 +44,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             // TODO [FILTER-01]: completare findUserByToken nel TokenService.
             // Il filter confronta il token con il DB attraverso quel servizio.
             tokenService.findUserByToken(token).ifPresent(user -> {
+                String role = user.role() != null ? user.role() : "ROLE_USER";
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                        user, null, List.of(new SimpleGrantedAuthority(role)));
                 var context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);

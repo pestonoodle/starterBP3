@@ -43,7 +43,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/ws").permitAll()
-                        .requestMatchers("/api/admin/**").hasAnyRole("ROLE_ADMIN")
+                        //.requestMatchers("/api/chats/**").permitAll()
+
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN")
                         //come se fosse anyOtherRequest
                         .anyRequest().authenticated())
                         // ****
@@ -70,7 +72,7 @@ public class SecurityConfig {
             @Value("${app.frontend-origin}") String frontendOrigin) {
         var config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(frontendOrigin));
-        config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

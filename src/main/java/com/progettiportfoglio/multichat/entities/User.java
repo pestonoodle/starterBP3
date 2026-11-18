@@ -32,11 +32,16 @@ public class User {
 
     String passwordHash;
 
+    private String role; // "ROLE_ADMIN" oppure "ROLE_USER"
+
     @PrePersist
     @PreUpdate
     public void checkFields() {
         username = username.toLowerCase().trim();
         email = email.toLowerCase().trim();
+        if (role == null || role.isBlank()) {
+            role = "ROLE_USER";
+        }
     }
 
 }

@@ -14,9 +14,6 @@ public class ChatWebSocketService {
     }
 
     public void publishMessage(MessageDto message) {
-        // TODO [WS-02]: inviare message con messagingTemplate.convertAndSend(...).
-        // Destination: "/topic/chats/" + message.chatId() + "/messages".
-        // Il controller chiamera questo metodo DOPO il salvataggio nel database.
-        throw new UnsupportedOperationException("TODO: pubblicare il messaggio sul topic");
+        messagingTemplate.convertAndSend("/topic/chats/" + message.chatId() + "/messages", message);
     }
 }

@@ -42,7 +42,9 @@ public class TokenService {
         return ar.findByToken(token)
             .map(a -> new AuthenticatedUser(
             a.getUser().getId(),
-            a.getUser().getUsername()
+            a.getUser().getUsername(),
+            a.getUser().getEmail(),
+            a.getUser().getRole() != null ? a.getUser().getRole() : "ROLE_USER"
         ));
     }
 
